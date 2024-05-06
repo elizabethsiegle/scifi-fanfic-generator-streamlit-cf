@@ -96,8 +96,8 @@ def main():
             <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{story}</p>
             """
             st.markdown(html_str, unsafe_allow_html=True)
-    st.write("Made w/ ❤️ in Hawaii 🏝️🌺 && Portland ☔️🌳")
-    st.write("✅ out the [code on GitHub](https://github.com/elizabethsiegle/star-wars-fanfic-generator-streamlit-astra-cf)")
+    st.write("Made w/ ❤️ in Hawaii 🏝️🌺, Portland ☔️🌳, && SF🌁")
+    st.write("✅ out the [code on GitHub](https://github.com/elizabethsiegle/scifi-fanfic-generator-streamlit-cf/tree/mothersday)")
 
 
 if __name__ == "__main__":
