@@ -42,10 +42,10 @@ def main():
             }
         </style>
     """, unsafe_allow_html=True)
-    st.markdown('<p class="big-font"<p>Mother\'s Day Poem && Gift Generator🎁💐</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font"<p>Mother\'s Day Letter, Poem, && Gift Generator🎁💐</p>', unsafe_allow_html=True)
     st.write(":blue[This Python🐍 web🕸️ app is built👩🏻‍💻 w/ [Streamlit](https://streamlit.io/) && [Cloudflare Workers AI](https://ai.cloudflare.com/)]")
     name = st.text_input(":red[What is your mom\'s name?]")
-    email = st.text_input("Mom\'s email")
+    email = st.text_input("Email to send letter to")
     q2 = st.multiselect(
         ':green[Your mom\'s ideal vacation spot is]',
         ['Hawaii🏝️', 'Tahoe', 'Paris', 'Tokyo'],
@@ -95,10 +95,10 @@ def main():
             # Assuming resp.content contains your image data
             with open('image.jpg', 'wb') as f:
                 f.write(resp.content)
-            poem_prompt = f"Generate nothing except a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the poem."
+            poem_prompt = f"Generate a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the poem and nothing else, no preamble."
             print(f'poem_prompt {poem_prompt}')
             poem = gen(text_model, poem_prompt)['result']['response']
-            gift_prompt = f"Generate only gift ideas for a mother named {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the gift recommendation."
+            gift_prompt = f"Generate gift ideas for a mother named {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the gift recommendation and nothing else."
             gift = gen(text_model, gift_prompt)['result']['response']
             
             html_str = f"""
@@ -112,8 +112,8 @@ def main():
                 to_emails=email,
                 subject='Mother\'s Day letter for you!❤️',
                 html_content=f'''
-                <p>{poem}</p>
                 <p><img src="cid:image_cid"></p>
+                <p>{poem}</p>
                 <p> ❤️😘🥰</p>
                 '''
             )
@@ -131,10 +131,11 @@ def main():
                 message.attachment = attachment
   
             sg = SendGridAPIClient(api_key=os.environ["SENDGRID_API_KEY"])
+            print(os.environ["SENDGRID_API_KEY"])
             response = sg.send(message)
             print(response.status_code, response.body, response.headers)
             if response.status_code == 202:
-                st.success("Email sent! Check their email for your Mother's day poem and image")
+                st.success("Email sent! Check the email for your Mother's day letter, poem, and image")
                 print(f"Response Code: {response.status_code} \n Email sent!")
             else:
                 st.warning("Email not sent--check console")
