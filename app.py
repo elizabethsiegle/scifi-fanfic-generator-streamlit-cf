@@ -1,11 +1,10 @@
 from dotenv import load_dotenv
 import json
-from PIL import Image
+import base64
 import os
 import requests
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import (
-     Mail)
+from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition, ContentId
 import streamlit as st
 
 
@@ -14,7 +13,7 @@ load_dotenv()
 CLOUDFLARE_ACCOUNT_ID = os.environ.get("CF_ACCOUNT_ID")
 CLOUDFLARE_API_TOKEN= os.environ.get("CF_API_TOKEN")
 
-def gen(model, prompt, name, q2, q3, q4, q5):
+def gen(model, prompt):
     payload = {
         "max_tokens": 2000,
         "prompt": prompt,
@@ -82,7 +81,7 @@ def main():
     if name is not None and q2 is not None and q3 is not None and q4 is not None and email is not None and st.button('Generate🤖'):
         # load dataset once on page load/on server start
         with st.spinner('Processing📈...'):
-            img_prompt = f"You are a world-renowned painter of matronly art. Generate a cute, airy, light image without any people in it relating to {q4} and {q2}"
+            img_prompt = f"You are a world-renowned Hallmark card art designer. Generate a cute, airy, light image in the style of a Mother's Day Hallmark card relating to {q2}"
             img_url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{img_model}"
             headers = {
                 "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
@@ -93,36 +92,52 @@ def main():
                 json={"prompt": img_prompt},
             )
             st.image(resp.content, caption=f"AI-generated image from {img_model}") #bytes lmao
+            # Assuming resp.content contains your image data
+            with open('image.jpg', 'wb') as f:
+                f.write(resp.content)
             poem_prompt = f"Generate nothing except a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the poem."
             print(f'poem_prompt {poem_prompt}')
-            poem = gen(text_model, poem_prompt, name, q2, q3, q4, q5)['result']['response']
+            poem = gen(text_model, poem_prompt)['result']['response']
             gift_prompt = f"Generate only gift ideas for a mother named {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the gift recommendation."
-            gift = gen(text_model, gift_prompt, name, q2, q3, q4, q5)['result']['response']
+            gift = gen(text_model, gift_prompt)['result']['response']
             
             html_str = f"""
             <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{poem}</p>
             <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{gift}</p>
             """
             st.markdown(html_str, unsafe_allow_html=True)
-            # <img src="{resp.content}"</img>
+
             message = Mail(
                 from_email='happymamas@leao.dev',
                 to_emails=email,
-                subject='Mother\'s Day image and poem for you!❤️',
+                subject='Mother\'s Day letter for you!❤️',
                 html_content=f'''
                 <p>{poem}</p>
+                <p><img src="cid:image_cid"></p>
                 <p> ❤️😘🥰</p>
                 '''
             )
+            # Attach the image
+            with open('image.jpg', 'rb') as f:
+                data = f.read()
+                encoded_file = base64.b64encode(data).decode()
+                attachment = Attachment(
+                    FileContent(encoded_file),
+                    FileName('image.jpg'),
+                    FileType('image/jpg'),
+                    Disposition('inline'),
+                    ContentId('image_cid')
+                )
+                message.attachment = attachment
   
-        sg = SendGridAPIClient(api_key=os.environ["SENDGRID_API_KEY"])
-        response = sg.send(message)
-        print(response.status_code, response.body, response.headers)
-        if response.status_code == 202:
-          st.success("Email sent! Check their email for your Mother's day poem and image")
-          print(f"Response Code: {response.status_code} \n Email sent!")
-        else:
-          st.warning("Email not sent--check console")
+            sg = SendGridAPIClient(api_key=os.environ["SENDGRID_API_KEY"])
+            response = sg.send(message)
+            print(response.status_code, response.body, response.headers)
+            if response.status_code == 202:
+                st.success("Email sent! Check their email for your Mother's day poem and image")
+                print(f"Response Code: {response.status_code} \n Email sent!")
+            else:
+                st.warning("Email not sent--check console")
     st.write("Made w/ ❤️ in Hawaii 🏝️🌺, Portland ☔️🌳, && SF🌁")
     st.write("✅ out the [code on GitHub](https://github.com/elizabethsiegle/scifi-fanfic-generator-streamlit-cf/tree/mothersday)")
 
