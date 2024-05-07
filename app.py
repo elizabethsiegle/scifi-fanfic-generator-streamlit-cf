@@ -10,8 +10,8 @@ import streamlit as st
 
 # Load API secrets
 load_dotenv()
-CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
-CLOUDFLARE_API_TOKEN= os.environ.get("CLOUDFLARE_API_TOKEN")
+CF_ACCOUNT_ID = st.secrets["CF_ACCOUNT_ID"]
+CF_API_TOKEN= st.secrets["CF_API_TOKEN"]
 
 def gen(model, prompt):
     payload = {
@@ -22,9 +22,9 @@ def gen(model, prompt):
     }
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}"
+        "Authorization": f"Bearer {CF_API_TOKEN}"
     }
-    url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{model}"
+    url =f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/{model}"
     response = requests.request("POST", url, json=payload, headers=headers)
     parsed_data = json.loads(response.text)
     print(f'parsed_data {parsed_data}')
@@ -147,8 +147,8 @@ def main():
                 )
                 message.attachment = attachment
   
-            sg = SendGridAPIClient(api_key=os.environ["SENDGRID_API_KEY"])
-            print(os.environ["SENDGRID_API_KEY"])
+            sg = SendGridAPIClient(api_key=st.secrets["SENDGRID_API_KEY"])
+            print(st.secrets["SENDGRID_API_KEY"])
             response = sg.send(message)
             print(response.status_code, response.body, response.headers)
             if response.status_code == 202:
@@ -165,7 +165,6 @@ def main():
     </footer>
     """
     st.markdown(footer_str, unsafe_allow_html=True)
-    st.write("")
 
 
 if __name__ == "__main__":
