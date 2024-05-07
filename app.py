@@ -10,8 +10,8 @@ import streamlit as st
 
 # Load API secrets
 load_dotenv()
-CLOUDFLARE_ACCOUNT_ID = os.environ.get("CF_ACCOUNT_ID")
-CLOUDFLARE_API_TOKEN= os.environ.get("CF_API_TOKEN")
+CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+CLOUDFLARE_API_TOKEN= os.environ.get("CLOUDFLARE_API_TOKEN")
 
 def gen(model, prompt):
     payload = {
@@ -36,13 +36,28 @@ def gen(model, prompt):
 def main():
     st.markdown("""
         <style>
+            .footer {
+                background-color: #333; /* Background color */
+                color: #fff; /* Text color */
+                padding: 20px; /* Padding inside the footer */
+                text-align: center; /* Center-align text */
+                position: fixed; /* Fixed position at the bottom */
+                left: 0;
+                bottom: 0;
+                width: 100%; /* Full width */
+            }
+
+            .footer-content {
+                max-width: 960px; /* Set a maximum width for content */
+                margin: 0 auto; /* Center-align content horizontally */
+            }
             .big-font {
                 font-size:40px !important;
                 color:green;
             }
         </style>
     """, unsafe_allow_html=True)
-    st.markdown('<p class="big-font"<p>Mother\'s Day Letter, Poem, && Gift Generator🎁💐</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font"<p>Mother\'s Day Letter, Poem, Gift Generator🎁💐</p>', unsafe_allow_html=True)
     st.write(":blue[This Python🐍 web🕸️ app is built👩🏻‍💻 w/ [Streamlit](https://streamlit.io/) && [Cloudflare Workers AI](https://ai.cloudflare.com/)]")
     name = st.text_input(":red[What is your mom\'s name?]")
     email = st.text_input("Email to send letter to")
@@ -86,11 +101,13 @@ def main():
             headers = {
                 "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
             }
+            print(f"img_url {img_url}")
             resp = requests.post(
                 img_url,
                 headers=headers,
                 json={"prompt": img_prompt},
             )
+            print(resp.content)
             st.image(resp.content, caption=f"AI-generated image from {img_model}") #bytes lmao
             # Assuming resp.content contains your image data
             with open('image.jpg', 'wb') as f:
@@ -139,8 +156,16 @@ def main():
                 print(f"Response Code: {response.status_code} \n Email sent!")
             else:
                 st.warning("Email not sent--check console")
-    st.write("Made w/ ❤️ in Hawaii 🏝️🌺, Portland ☔️🌳, && SF🌁")
-    st.write("✅ out the [code on GitHub](https://github.com/elizabethsiegle/scifi-fanfic-generator-streamlit-cf/tree/mothersday)")
+    footer_str = f"""
+    <footer class="footer">
+        <div class="footer-content">
+            <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">Made w/ ❤️ in Hawaii 🏝️🌺, Portland ☔️🌳, && SF🌁</p>
+            <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">✅ out the <a href="https://github.com/elizabethsiegle/scifi-fanfic-generator-streamlit-cf/tree/mothersday">code on GitHub</a></p>
+        </div>
+    </footer>
+    """
+    st.markdown(footer_str, unsafe_allow_html=True)
+    st.write("")
 
 
 if __name__ == "__main__":
