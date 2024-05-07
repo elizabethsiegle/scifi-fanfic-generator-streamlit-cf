@@ -14,9 +14,7 @@ load_dotenv()
 CLOUDFLARE_ACCOUNT_ID = os.environ.get("CF_ACCOUNT_ID")
 CLOUDFLARE_API_TOKEN= os.environ.get("CF_API_TOKEN")
 
-def gen_poem(model, name, q2, q3, q4, q5):
-    prompt = f"Return only a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return nothing else besides the poem."
-    print(f'prompt {prompt}')
+def gen(model, prompt, name, q2, q3, q4, q5):
     payload = {
         "max_tokens": 2000,
         "prompt": prompt,
@@ -95,19 +93,24 @@ def main():
                 json={"prompt": img_prompt},
             )
             st.image(resp.content, caption=f"AI-generated image from {img_model}") #bytes lmao
-            story = gen_poem(text_model, name, q2, q3, q4, q5)['result']['response']
+            poem_prompt = f"Generate nothing except a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the poem."
+            print(f'poem_prompt {poem_prompt}')
+            poem = gen(text_model, poem_prompt, name, q2, q3, q4, q5)['result']['response']
+            gift_prompt = f"Generate only gift ideas for a mother named {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the gift recommendation."
+            gift = gen(text_model, gift_prompt, name, q2, q3, q4, q5)['result']['response']
             
             html_str = f"""
-            <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{story}</p>
+            <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{poem}</p>
+            <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{gift}</p>
             """
             st.markdown(html_str, unsafe_allow_html=True)
+            # <img src="{resp.content}"</img>
             message = Mail(
                 from_email='happymamas@leao.dev',
                 to_emails=email,
                 subject='Mother\'s Day image and poem for you!❤️',
                 html_content=f'''
-                <img src="{resp.content}"</img>
-                <p>{story}</p>
+                <p>{poem}</p>
                 <p> ❤️😘🥰</p>
                 '''
             )
