@@ -97,9 +97,9 @@ def main():
         # load dataset once on page load/on server start
         with st.spinner('Processing📈...'):
             img_prompt = f"You are a world-renowned Hallmark card art designer. Generate a cute, airy, light image in the style of a Mother's Day Hallmark card relating to {q2}"
-            img_url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{img_model}"
+            img_url =f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/{img_model}"
             headers = {
-                "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
+                "Authorization": f"Bearer {CF_API_TOKEN}",
             }
             print(f"img_url {img_url}")
             resp = requests.post(
