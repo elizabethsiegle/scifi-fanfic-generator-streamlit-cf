@@ -1,8 +1,13 @@
 from dotenv import load_dotenv
+import json
+from PIL import Image
 import os
 import requests
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import (
+     Mail)
 import streamlit as st
-import json
+
 
 # Load API secrets
 load_dotenv()
@@ -10,7 +15,7 @@ CLOUDFLARE_ACCOUNT_ID = os.environ.get("CF_ACCOUNT_ID")
 CLOUDFLARE_API_TOKEN= os.environ.get("CF_API_TOKEN")
 
 def gen_poem(model, name, q2, q3, q4, q5):
-    prompt = f"Return only a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return nothing else."
+    prompt = f"Return only a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return nothing else besides the poem."
     print(f'prompt {prompt}')
     payload = {
         "max_tokens": 2000,
@@ -40,9 +45,10 @@ def main():
             }
         </style>
     """, unsafe_allow_html=True)
-    st.markdown('<p class="big-font"<p>Mother\'s Day Poem and Gift Generator🎁💐</p>', unsafe_allow_html=True)
+    st.markdown('<p class="big-font"<p>Mother\'s Day Poem && Gift Generator🎁💐</p>', unsafe_allow_html=True)
     st.write(":blue[This Python🐍 web🕸️ app is built👩🏻‍💻 w/ [Streamlit](https://streamlit.io/) && [Cloudflare Workers AI](https://ai.cloudflare.com/)]")
     name = st.text_input(":red[What is your mom\'s name?]")
+    email = st.text_input("Mom\'s email")
     q2 = st.multiselect(
         ':green[Your mom\'s ideal vacation spot is]',
         ['Hawaii🏝️', 'Tahoe', 'Paris', 'Tokyo'],
@@ -53,11 +59,11 @@ def main():
     q3 = st.select_slider(':orange[On a scale from popcorn to Anakin burning on Geonosis, how warm🔥 does your mom make you feel?]', options=warm_labels)
 
     q4 = st.text_input(":pink[Describe your mom✌️🥰]")
-    sal_labels = ["har gow", "shiu mai", "potsticker🥟", ]
-    q5 = st.select_slider(":orange[On a scale from R2-D2😇 to Jar Jar sans-clothes🔥, how cute should the poem be😘?]", options= sal_labels)
+    sal_labels = ["frozen TJ's potsticker🥟", "har gow", "Yank Sing shiu mai"]
+    q5 = st.select_slider(":orange[On a scale from potsticker🥟 to shiu mai, how cute should the poem be😘?]", options= sal_labels)
     # All models at https://developers.cloudflare.com/workers-ai/models/
     img_model = st.selectbox(
-    "Choose your character😘 (Text-To-Image model):",
+    "Choose your SUV😘 (Text-To-Image model):",
         options=(
             "@cf/lykon/dreamshaper-8-lcm",
             "@cf/bytedance/stable-diffusion-xl-lightning",
@@ -75,11 +81,10 @@ def main():
     )
     # url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{text_model}"
     url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{text_model}"
-    if name is not None and q2 is not None and q3 is not None and q4 is not None and st.button('Generate🤖'):
+    if name is not None and q2 is not None and q3 is not None and q4 is not None and email is not None and st.button('Generate🤖'):
         # load dataset once on page load/on server start
         with st.spinner('Processing📈...'):
             img_prompt = f"You are a world-renowned painter of matronly art. Generate a cute, airy, light image without any people in it relating to {q4} and {q2}"
-            #img_prompt = f"Generate a seductive image of Jar Jar Binks"
             img_url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{img_model}"
             headers = {
                 "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
@@ -96,6 +101,25 @@ def main():
             <p style="font-family:Comic Sans; color:Pink; font-size: 18px;">{story}</p>
             """
             st.markdown(html_str, unsafe_allow_html=True)
+            message = Mail(
+                from_email='happymamas@leao.dev',
+                to_emails=email,
+                subject='Mother\'s Day image and poem for you!❤️',
+                html_content=f'''
+                <img src="{resp.content}"</img>
+                <p>{story}</p>
+                <p> ❤️😘🥰</p>
+                '''
+            )
+  
+        sg = SendGridAPIClient(api_key=os.environ["SENDGRID_API_KEY"])
+        response = sg.send(message)
+        print(response.status_code, response.body, response.headers)
+        if response.status_code == 202:
+          st.success("Email sent! Check their email for your Mother's day poem and image")
+          print(f"Response Code: {response.status_code} \n Email sent!")
+        else:
+          st.warning("Email not sent--check console")
     st.write("Made w/ ❤️ in Hawaii 🏝️🌺, Portland ☔️🌳, && SF🌁")
     st.write("✅ out the [code on GitHub](https://github.com/elizabethsiegle/scifi-fanfic-generator-streamlit-cf/tree/mothersday)")
 
