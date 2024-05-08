@@ -96,7 +96,7 @@ def main():
     if name is not None and q2 is not None and q3 is not None and q4 is not None and email is not None and st.button('Generate🤖'):
         # load dataset once on page load/on server start
         with st.spinner('Processing📈...'):
-            img_prompt = f"You are a world-renowned Hallmark card art designer. Generate a cute, airy, light image in the style of a Mother's Day Hallmark card relating to {q2} that does not include people"
+            img_prompt = f"You are a landmark Hallmark card art designer. Without including people, generate a cute, airy, light image for a Mother's Day card relating to {q2} that does not include people"
             img_url =f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/{img_model}"
             headers = {
                 "Authorization": f"Bearer {CF_API_TOKEN}",
@@ -115,7 +115,7 @@ def main():
             poem_prompt = f"Generate a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the poem and nothing else, no preamble."
             print(f'poem_prompt {poem_prompt}')
             poem = gen(text_model, poem_prompt)['result']['response']
-            gift_prompt = f"Generate gift ideas for a mother named {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the gift recommendation and nothing else."
+            gift_prompt = f"Generate gift ideas for a mother named {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the gift recommendation, no preamble."
             gift = gen(text_model, gift_prompt)['result']['response']
             
             html_str = f"""
