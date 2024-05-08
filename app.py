@@ -91,17 +91,16 @@ def main():
             "@cf/mistral/mistral-7b-instruct-v0.2-lora"
         )
     )
-    # url =f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{text_model}"
     url =f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/{text_model}"
     if name is not None and q2 is not None and q3 is not None and q4 is not None and email is not None and st.button('Generate🤖'):
         # load dataset once on page load/on server start
         with st.spinner('Processing📈...'):
-            img_prompt = f"You are a landmark Hallmark card art designer. Without including people, generate a cute, airy, light image for a Mother's Day card relating to {q2} that does not include people"
+            img_prompt = f"You are a landmark Hallmark card art designer. Without including people, generate a cute, airy, light image for a Mother's Day card showing {q2} that does not include people"
             img_url =f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/{img_model}"
             headers = {
                 "Authorization": f"Bearer {CF_API_TOKEN}",
             }
-            print(f"img_url {img_url}")
+
             resp = requests.post(
                 img_url,
                 headers=headers,
@@ -109,7 +108,7 @@ def main():
             )
             print(resp.content)
             st.image(resp.content, caption=f"AI-generated image from {img_model}") #bytes lmao
-            # Assuming resp.content contains your image data
+            # resp.content contains image data
             with open('image.jpg', 'wb') as f:
                 f.write(resp.content)
             poem_prompt = f"Generate a poem for mother's day for {name} somehow relating to {q2}, {q3}, {q4}, {q5}. Return only the poem and nothing else, no preamble."
@@ -148,7 +147,6 @@ def main():
                 message.attachment = attachment
   
             sg = SendGridAPIClient(api_key=st.secrets["SENDGRID_API_KEY"])
-            print(st.secrets["SENDGRID_API_KEY"])
             response = sg.send(message)
             print(response.status_code, response.body, response.headers)
             if response.status_code == 202:
