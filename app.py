@@ -96,7 +96,7 @@ def main():
     if name is not None and q2 is not None and q3 is not None and q4 is not None and email is not None and st.button('Generate🤖'):
         # load dataset once on page load/on server start
         with st.spinner('Processing📈...'):
-            img_prompt = f"You are a world-renowned Hallmark card art designer. Generate a cute, airy, light image in the style of a Mother's Day Hallmark card relating to {q2}"
+            img_prompt = f"You are a world-renowned Hallmark card art designer. Generate a cute, airy, light image in the style of a Mother's Day Hallmark card relating to {q2} that does not include people"
             img_url =f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/{img_model}"
             headers = {
                 "Authorization": f"Bearer {CF_API_TOKEN}",
